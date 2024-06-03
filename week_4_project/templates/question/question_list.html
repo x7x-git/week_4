@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-3">
+    <div class="row my-3">
+        <div class="col-6">
+            <a href="{{ url_for('question.q_create') }}" class="btn btn-primary">질문 등록하기</a>
+        </div>
+        <div class="col-6">
+            <div class="input-group">
+                <input type="text" id="search_kw" class="form-control" value="{{ kw or '' }}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="button" id="btn_search">찾기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+        <tr class="text-center table-dark">
+            <th>번호</th>
+            <th style="width:50%">제목</th>
+            <th>글쓴이</th>
+            <th>작성일시</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if question_list %}
+        {% for question in question_list %}
+        <tr class="text-center">
+            <td>{{ loop.index + (page - 1) * per_page }}</td>
+            <td class="text-start">
+                <a href="{{ url_for('question.q_detail', question_id=question.id) }}">{{ question.title }}</a>
+                {% if question.answer_count > 0 %}
+                <span class="text-danger small mx-2">{{ question.answer_count }}</span>
+                {% endif %}
+            </td>
+            <td>{{ question.username }}</td>
+            <td>{{ question.time }}</td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="4">질문이 없습니다.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <!-- 이전 페이지 -->
+            {% if page > 1 %}
+            <li class="page-item">
+                <a class="page-link" data-page="{{ page-1 }}" href="javascript:void(0)">이전</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" tabindex="-1" aria-disabled="true" href="javascript:void(0)">이전</a>
+            </li>
+            {% endif %}
+
+            <!-- 페이지 번호 -->
+            {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+            <li class="page-item active" aria-current="page">
+                <a class="page-link" data-page="{{ p }}" href="javascript:void(0)">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+                <a class="page-link" data-page="{{ p }}" href="javascript:void(0)">{{ p }}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            <!-- 다음 페이지 -->
+            {% if page < total_pages %}
+            <li class="page-item">
+                <a class="page-link" data-page="{{ page+1 }}" href="javascript:void(0)">다음</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" tabindex="-1" aria-disabled="true" href="javascript:void(0)">다음</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+<form id="searchForm" method="get" action="{{ url_for('question.q_list') }}">
+    <input type="hidden" id="kw" name="kw" value="{{ kw or '' }}">
+    <input type="hidden" id="page" name="page" value="{{ page }}">
+</form>
+
+{% block script %}
+<script type='text/javascript'>
+const page_elements = document.getElementsByClassName("page-link");
+Array.from(page_elements).forEach(function(element) {
+    element.addEventListener('click', function() {
+        document.getElementById('page').value = this.dataset.page;
+        document.getElementById('searchForm').submit();
+    });
+});
+const btn_search = document.getElementById("btn_search");
+btn_search.addEventListener('click', function() {
+    document.getElementById('kw').value = document.getElementById('search_kw').value;
+    document.getElementById('page').value = 1;
+    document.getElementById('searchForm').submit();
+});
+</script>
+{% endblock %}
+{% endblock %}
