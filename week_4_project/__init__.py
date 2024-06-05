@@ -31,7 +31,7 @@ def create_app():
             db.close()
             #print('DB Closed!')
 
-    from week_3_project.views import main_views, question_views, answer_views, auth_views
+    from week_4_project.views import main_views, question_views, answer_views, auth_views
     app.register_blueprint(main_views.bp)
     app.register_blueprint(question_views.bp)
     app.register_blueprint(answer_views.bp)

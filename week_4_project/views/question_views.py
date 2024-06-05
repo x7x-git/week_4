@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, url_for, g, flash, redirect, abort
-from week_3_project.forms import QuestionForm, AnswerForm
-from week_3_project.views.auth_views import login_required
-import week_3_project.models as models
+from week_4_project.forms import QuestionForm, AnswerForm
+from week_4_project.views.auth_views import login_required
+import week_4_project.models as models
 
 bp = Blueprint('question', __name__, url_prefix='/question')
 
