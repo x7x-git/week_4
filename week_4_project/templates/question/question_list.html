@@ -33,8 +33,11 @@
                 {% if question.answer_count > 0 %}
                 <span class="text-danger small mx-2">{{ question.answer_count }}</span>
                 {% endif %}
+                {% if question.password %}
+                <span class="text-warning mx-2">🔒</span>
+                {% endif %}
             </td>
-            <td>{{ question.username }}</td>
+            <td><a href="{{ url_for('auth.view_profile', user_id=question.user_id) }}">{{ question.username }}</a></td>
             <td>{{ question.time }}</td>
         </tr>
         {% endfor %}

@@ -1,9 +1,11 @@
-from flask import Blueprint, url_for, render_template, flash, request, session, g
+from flask import Blueprint, url_for, render_template, flash, abort, request, session, g, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import redirect
 import week_4_project.models as models
-from week_4_project.forms import UserCreateForm, UserLoginForm
+from week_4_project.forms import UserCreateForm, UserLoginForm, ProfileForm  
 import functools
+import os
+import uuid
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -37,7 +39,7 @@ def signup():
         email = models.get_user_by_email(form.email.data)
         if not user and not email:
             hashed_password = generate_password_hash(form.password1.data)
-            models.insert_user(form.username.data, hashed_password, form.email.data)
+            models.insert_user(form.username.data, hashed_password, form.email.data, form.name.data, form.school.data)
             return redirect(url_for('main.index'))
         else:
             flash('이미 존재하는 사용자 이름 또는 이메일입니다.')
@@ -63,3 +65,40 @@ def signin():
                 return redirect(url_for('main.index'))
         flash(error)
     return render_template('auth/signin.html', form=form)
+
+def allowed_profile_image(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in current_app.config['PROFILE_IMAGE_ALLOWED_EXTENSIONS']
+
+@bp.route('/profile/', methods=('GET', 'POST'))
+@login_required
+def profile():
+    form = ProfileForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        name = form.name.data
+        school = form.school.data
+        profile_image = form.profile_image.data
+        if profile_image and allowed_profile_image(profile_image.filename):
+            # 기존 프로필 이미지 삭제
+            if g.user['profile_image']:
+                existing_image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], g.user['profile_image'])
+                if os.path.exists(existing_image_path):
+                    os.remove(existing_image_path)
+            
+            file_ext = profile_image.filename.split('.')[-1]
+            profile_image_filename = f"{g.user['id']}_{uuid.uuid4().hex}.{file_ext}"
+            profile_image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], profile_image_filename))
+            g.user['profile_image'] = profile_image_filename
+        models.update_user_profile(g.user['id'], name, school, g.user['profile_image'])
+        flash('프로필이 업데이트되었습니다.')
+        return redirect(url_for('auth.profile'))
+    return render_template('profile.html', form=form, user=g.user, editable=True)
+
+@bp.route('/profile/<int:user_id>/', methods=('GET',))
+@login_required
+def view_profile(user_id):
+    user = models.get_user_by_id(user_id)
+    if user is None:
+        abort(404)
+    form = ProfileForm(obj=user)
+    return render_template('profile.html', form=form, user=user, editable=False)

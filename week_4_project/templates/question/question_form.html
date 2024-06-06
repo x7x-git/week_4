@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
     <h5 class="my-3 border-bottom pb-2">질문등록</h5>
-    <form method="post" class="my-3">
+    <form method="post" enctype="multipart/form-data" class="my-3">
         {{ form.csrf_token }}
         {% if form.errors %}
         <div class="alert alert-danger" role="alert">
@@ -23,6 +23,14 @@
         <div class="mb-3">
             <label for="content">내용</label>
             <textarea class="form-control" name="content" id="content" rows="10">{{ form.content.data or '' }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="password">비밀번호 (선택사항)</label>
+            <input type="password" class="form-control" name="password" id="password" value="{{ form.password.data or '' }}">
+        </div>
+        <div class="mb-3">
+            <label for="file">파일 업로드</label>
+            <input type="file" class="form-control" name="file" id="file">
         </div>
         <button type="submit" class="btn btn-primary">저장하기</button>
     </form>
