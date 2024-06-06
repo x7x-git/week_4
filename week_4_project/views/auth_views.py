@@ -110,14 +110,6 @@ def generate_reset_token(email):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
 
-def confirm_reset_token(token, expiration=3600):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    try:
-        email = serializer.loads(token, salt=current_app.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
-    except SignatureExpired:
-        return False
-    return email
-
 @bp.route('/reset_password_request/', methods=['GET', 'POST'])
 def reset_password_request():
     form = ResetPasswordRequestForm()
@@ -135,6 +127,14 @@ def reset_password_request():
             flash('등록된 이메일이 아닙니다.', 'danger')
         return redirect(url_for('auth.reset_password_request'))
     return render_template('auth/reset_password_request.html', form=form)
+
+def confirm_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt=current_app.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
+    except SignatureExpired:
+        return False
+    return email
 
 @bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):

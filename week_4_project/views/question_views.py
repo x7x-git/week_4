@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import week_4_project.models as models
 import os
 import uuid
-from werkzeug.utils import secure_filename
 
 bp = Blueprint('question', __name__, url_prefix='/question')
 

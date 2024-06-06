@@ -15,10 +15,10 @@ class Config:
     QUESTION_FILE_UPLOAD_FOLDER = 'week_4_project/static/question_files'
     UPLOAD_FOLDER = os.path.join(os.getcwd(), 'week_4_project/static/profile_images')
 
-    MAIL_SERVER = 'smtp.naver.com'
+    MAIL_SERVER = ''
     MAIL_PORT = 587
-    MAIL_USERNAME = 'skt_nsc_alert@naver.com'
-    MAIL_PASSWORD = 'qhdks12#$'
+    MAIL_USERNAME = ''
+    MAIL_PASSWORD = ''
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     SECURITY_PASSWORD_SALT = 'dev'
