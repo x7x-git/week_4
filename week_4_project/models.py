@@ -172,3 +172,9 @@ def update_user_profile(user_id, name, school, profile_image):
         WHERE id = %s
     """, (name, school, profile_image, user_id))
     g.db.commit()
+
+# 비밀번호 업데이트 기능 추가
+def update_user_password(email, hashed_password):
+    cursor = g.db.cursor()
+    cursor.execute("UPDATE passwd SET password = %s WHERE email = %s", (hashed_password, email))
+    g.db.commit()

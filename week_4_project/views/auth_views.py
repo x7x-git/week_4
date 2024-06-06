@@ -2,12 +2,15 @@ from flask import Blueprint, url_for, render_template, flash, abort, request, se
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import redirect
 import week_4_project.models as models
-from week_4_project.forms import UserCreateForm, UserLoginForm, ProfileForm  
+from week_4_project.forms import UserCreateForm, UserLoginForm, ProfileForm, FindUsernameForm, ResetPasswordRequestForm, ResetPasswordForm
 import functools
 import os
 import uuid
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+mail = Mail()
 
 def login_required(view):
     @functools.wraps(view)
@@ -102,3 +105,63 @@ def view_profile(user_id):
         abort(404)
     form = ProfileForm(obj=user)
     return render_template('profile.html', form=form, user=user, editable=False)
+
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+
+def confirm_reset_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt=current_app.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
+    except SignatureExpired:
+        return False
+    return email
+
+@bp.route('/reset_password_request/', methods=['GET', 'POST'])
+def reset_password_request():
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = models.get_user_by_email(email)
+        if user:
+            token = generate_reset_token(email)
+            reset_url = url_for('auth.reset_password', token=token, _external=True)
+            msg = Message('비밀번호 재설정', sender=current_app.config['MAIL_USERNAME'], recipients=[email])
+            msg.body = f"비밀번호 재설정 링크: {reset_url}"
+            mail.send(msg)
+            flash('비밀번호 재설정 메일이 전송 되었습니다.', 'info')
+        else:
+            flash('등록된 이메일이 아닙니다.', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+    return render_template('auth/reset_password_request.html', form=form)
+
+@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        email = confirm_reset_token(token)
+    except:
+        flash('재설정 링크가 잘못되었거나 만료되었습니다.', 'danger')
+        return redirect(url_for('auth.reset_password_request'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        password = form.password.data
+        hashed_password = generate_password_hash(password)
+        models.update_user_password(email, hashed_password)
+        flash('비밀번호가 업데이트 되었습니다.', 'success')
+        return redirect(url_for('auth.signin'))
+    return render_template('auth/reset_password.html', form=form)
+
+@bp.route('/find_username/', methods=['GET', 'POST'])
+def find_username():
+    form = FindUsernameForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = models.get_user_by_email(email)
+        if user:
+            flash(f"사용자 ID: {user['username']}", 'info')
+        else:
+            flash('등록된 이메일이 아닙니다.', 'danger')
+        return redirect(url_for('auth.find_username'))
+    return render_template('auth/find_username.html', form=form)

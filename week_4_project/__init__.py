@@ -2,11 +2,14 @@ from flask import Flask, render_template, g
 from pymysql.cursors import DictCursor
 from config import Config
 import pymysql
-import os
+from flask_mail import Mail
+
+mail = Mail()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
+    mail.init_app(app)
 
     def get_db_connection():
         connection = pymysql.connect(
@@ -41,11 +44,5 @@ def create_app():
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('404.html'), 404
-
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
-    
-    if not os.path.exists(app.config['QUESTION_FILE_UPLOAD_FOLDER']):
-        os.makedirs(app.config['QUESTION_FILE_UPLOAD_FOLDER'])
 
     return app

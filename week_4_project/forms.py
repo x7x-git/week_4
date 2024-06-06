@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, PasswordField, EmailField
+from wtforms import StringField, TextAreaField, PasswordField, EmailField, SubmitField
 from wtforms.validators import DataRequired, Length, EqualTo, Email
 from flask_wtf.file import FileField, FileAllowed
 
@@ -28,3 +28,19 @@ class ProfileForm(FlaskForm):
     name = StringField('이름', validators=[DataRequired('이름은 필수입력 항목입니다.')])
     school = StringField('학교', validators=[DataRequired('학교는 필수입력 항목입니다.')])
     profile_image = FileField('프로필 이미지', validators=[FileAllowed(['jpg', 'png'], '이미지 파일만 업로드 가능합니다.')])
+
+
+
+
+
+class FindUsernameForm(FlaskForm):
+    email = EmailField('이메일', validators=[DataRequired('이메일은 필수입력 항목입니다.'), Email('이메일 형식이 올바르지 않습니다.')])
+    submit = SubmitField('아이디 찾기')
+
+class ResetPasswordRequestForm(FlaskForm):
+    email = EmailField('이메일', validators=[DataRequired('이메일은 필수입력 항목입니다.'), Email('이메일 형식이 올바르지 않습니다.')])
+    submit = SubmitField('비밀번호 재설정')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('비밀번호', validators=[DataRequired('비밀번호는 필수입력 항목입니다.')])
+    submit = SubmitField('비밀번호 재설정')

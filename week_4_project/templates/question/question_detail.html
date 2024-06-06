@@ -12,7 +12,7 @@
             <div class="card-text" style="white-space: pre-line;">{{ question.content }}</div>
             {% if question.file_path %}
             <div class="mt-3">
-                <a href="{{ url_for('static', filename='question_files/' ~ question.file_path) }}" class="btn btn-outline-primary">파일 다운로드</a>
+                <a href="{{ url_for('question.download_file', filename=question.file_path) }}" class="btn btn-outline-primary">파일 다운로드</a>
             </div>
             {% endif %}
             <div class="d-flex justify-content-end">

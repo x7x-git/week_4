@@ -40,8 +40,8 @@ def q_create():
         file_path = None
         file = form.file.data
         if file and allowed_question_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = f"{g.user['id']}_{uuid.uuid4().hex}_{filename}"
+            file_ext = file.filename.split('.')[-1]
+            file_path = f"{g.user['id']}_{uuid.uuid4().hex}.{file_ext}"
             file.save(os.path.join(current_app.config['QUESTION_FILE_UPLOAD_FOLDER'], file_path))
         
         models.insert_question(form.title.data, form.content.data, g.user['id'], password, file_path)
